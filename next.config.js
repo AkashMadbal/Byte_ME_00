@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // We're using Turbopack now, so we don't need webpack configuration
+  // If you need to switch back to webpack, uncomment this section
+  /*
   webpack: (config, { isServer }) => {
     // Only include the mongodb module on the server side
     if (!isServer) {
@@ -26,13 +29,12 @@ const nextConfig = {
     }
     return config;
   },
+  */
   // Ensure MongoDB client-side encryption is only used on the server
   serverExternalPackages: ['mongodb'],
 
-  // Configure Turbopack
-  experimental: {
-    turbo: true,
-  },
+  // Configure Turbopack (stable API)
+  turbopack: {},
 };
 
 module.exports = nextConfig;
