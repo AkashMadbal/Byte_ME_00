@@ -57,6 +57,13 @@ export default function Chat() {
     setIsLoading(true)
 
     try {
+      console.log("Sending chat message for user:", session?.user?.email);
+
+      if (!session?.user?.email) {
+        console.error("No user email available in session");
+        throw new Error("User not authenticated. Please sign in again.");
+      }
+
       // Send the message to your backend
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -66,12 +73,14 @@ export default function Chat() {
         body: JSON.stringify({
           message: input,
           context: "This is an educational AI mentor conversation",
-          email: session?.user?.email || '',
+          email: session.user.email,
         }),
       })
 
       if (!response.ok) {
-        throw new Error("Failed to get response from AI")
+        const errorText = await response.text().catch(() => "Could not read error response");
+        console.error(`API responded with status ${response.status}: ${errorText}`);
+        throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json()
@@ -101,13 +110,27 @@ export default function Chat() {
     } catch (error) {
       console.error("Error sending message:", error)
 
+      // Check if this is a MongoDB connection error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isMongoDBError = errorMessage.includes('MongoDB') ||
+                            errorMessage.includes('Database connection') ||
+                            errorMessage.includes('ECONNREFUSED');
+
+      let errorResponse = "I'm having trouble connecting right now. Please try again later.";
+
+      if (isMongoDBError) {
+        errorResponse = "Unable to connect to the database. Please make sure MongoDB is running. See MONGODB_SETUP.md for instructions.";
+      } else if (errorMessage.includes('not authenticated')) {
+        errorResponse = "You need to be signed in to use the chat. Please sign in again.";
+      }
+
       // Add error message
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
           role: "assistant",
-          content: "I'm having trouble connecting right now. Please try again later.",
+          content: errorResponse,
         },
       ])
     } finally {
