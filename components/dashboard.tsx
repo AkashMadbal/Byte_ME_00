@@ -54,15 +54,27 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      console.log("Fetching dashboard data for user:", session?.user?.email);
+
+      if (!session?.user?.email) {
+        console.error("No user email available in session");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/dashboard", {
         method: "POST",
-        body: JSON.stringify({ email: session?.user?.email }),
+        body: JSON.stringify({ email: session.user.email }),
         headers: {
           "Content-Type": "application/json",
         },
       })
 
-      if (!res.ok) throw new Error("Failed to fetch")
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => "Could not read error response");
+        console.error(`API responded with status ${res.status}: ${errorText}`);
+        throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+      }
 
       const data = await res.json()
 
@@ -100,12 +112,23 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchDashboardData()
+    console.log('Session status changed:', status);
+    console.log('Session data:', session);
+
+    if (status === "authenticated" && session?.user?.email) {
+      console.log('User is authenticated, fetching dashboard data');
+      fetchDashboardData();
     } else if (status === "unauthenticated") {
-      setLoading(false)
+      console.log('User is not authenticated, redirecting to login');
+      setLoading(false);
+      router.push('/login');
+    } else if (status === "loading") {
+      console.log('Session is loading...');
+    } else {
+      console.log('Unknown session state or missing email');
+      setLoading(false);
     }
-  }, [status])
+  }, [status, session, router])
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * motivationalQuotes.length)

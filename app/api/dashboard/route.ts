@@ -3,10 +3,25 @@ import clientPromise from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
+    console.log('Dashboard API called');
+
+    // Parse request body
+    let data;
+    try {
+      data = await req.json();
+    } catch (parseError) {
+      console.error('Error parsing request JSON:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
     const { email } = data;
+    console.log('Dashboard request for email:', email);
 
     if (!email) {
+      console.error('Email is missing in request');
       return NextResponse.json(
         { error: 'Email is required' },
         { status: 400 }
@@ -14,11 +29,34 @@ export async function POST(req: NextRequest) {
     }
 
     // Connect to MongoDB directly
-    const client = await clientPromise;
+    let client;
+    try {
+      console.log('Connecting to MongoDB...');
+      client = await clientPromise;
+      console.log('MongoDB connection successful');
+    } catch (dbError) {
+      console.error('MongoDB connection error:', dbError);
+      return NextResponse.json(
+        { error: 'Database connection failed', details: dbError instanceof Error ? dbError.message : 'Unknown error' },
+        { status: 500 }
+      );
+    }
+
     const db = client.db();
 
     // Fetch user by email
-    const user = await db.collection('users').findOne({ email });
+    let user;
+    try {
+      console.log('Querying for user with email:', email);
+      user = await db.collection('users').findOne({ email });
+      console.log('User query result:', user ? 'User found' : 'User not found');
+    } catch (queryError) {
+      console.error('MongoDB query error:', queryError);
+      return NextResponse.json(
+        { error: 'Database query failed', details: queryError instanceof Error ? queryError.message : 'Unknown error' },
+        { status: 500 }
+      );
+    }
 
     if (!user) {
       return NextResponse.json(
