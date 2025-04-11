@@ -54,7 +54,7 @@ export default function Navbar() {
             <NavLink   href="#features">Features</NavLink>
 
             <div className="flex items-center space-x-4">
-              <Link href="/api/auth/signin">
+              <Link href="/login">
                 <Button variant="outline" className="rounded-full px-6 border-indigo-500/30 hover:bg-indigo-500/20 hover:text-white">
                   Sign In
                 </Button>
@@ -94,7 +94,7 @@ export default function Navbar() {
             </MobileNavLink>
 
             <div className="pt-4 flex flex-col space-y-3">
-              <Link href="/api/auth/signin" className="w-full">
+              <Link href="/login" className="w-full">
                 <Button variant="outline" className="w-full rounded-full border-indigo-500/30 hover:bg-indigo-500/20 hover:text-white">
                   Sign In
                 </Button>

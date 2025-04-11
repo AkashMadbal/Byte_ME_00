@@ -37,7 +37,7 @@ export default function SignUpPage() {
       console.log(res)
 
       setIsLoading(false)
-      router.push("/api/auth/signin")
+      router.push("/login")
     } catch (error) {
       setError(error instanceof Error ? error.message : "Something went wrong")
       setIsLoading(false)

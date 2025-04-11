@@ -4,20 +4,22 @@ import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  
+
   // Define public paths that don't require authentication
-  const isPublicPath = path === '/login' || 
-                       path === '/api/auth/signin' || 
-                       path === '/api/auth/signup' || 
-                       path === '/' || 
-                       path.startsWith('/api/auth/');
-  
+  const isPublicPath = path === '/login' ||
+                       path === '/api/auth/signin' ||
+                       path === '/api/auth/signup' ||
+                       path === '/' ||
+                       path.startsWith('/api/auth/') ||
+                       path.includes('_next') ||
+                       path.includes('favicon.ico');
+
   // Get the token
-  const token = await getToken({ 
+  const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET
   });
-  
+
   // Redirect logic
   if (isPublicPath && token) {
     // If user is authenticated and tries to access login page, redirect to dashboard
@@ -27,12 +29,12 @@ export async function middleware(request: NextRequest) {
     // For other public paths, allow access
     return NextResponse.next();
   }
-  
+
   if (!isPublicPath && !token) {
     // If user is not authenticated and tries to access protected route, redirect to login
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  
+
   return NextResponse.next();
 }
 

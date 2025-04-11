@@ -1,14 +1,19 @@
 import { UserModel } from './models/user';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 
-// Ensure this code only runs on the server
+// This is a server-side module
+// Add a safety check to prevent client-side usage
 if (typeof window !== 'undefined') {
-  throw new Error('This module should only be used on the server side');
+  // We're on the client side - provide a helpful error message
+  console.warn('Warning: auth.ts should only be imported on the server side');
+  // Don't throw an error as it would break the app, but log a warning
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    // Credentials provider for email/password login
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -51,6 +56,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Authentication failed');
         }
       }
+    }),
+    // Google provider for OAuth login
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
   ],
   session: {

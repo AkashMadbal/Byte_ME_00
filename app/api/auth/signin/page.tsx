@@ -26,12 +26,17 @@ export default function SignInPage() {
     setError(null)
 
     try {
+      console.log("Attempting to sign in with:", { email })
+
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
+        callbackUrl: "/dashboard"
       })
-console.log(result)
+
+      console.log("Sign in result:", result)
+
       if (result?.error) {
         setError("Invalid email or password")
         setIsLoading(false)
@@ -40,14 +45,15 @@ console.log(result)
 
       router.push("/dashboard")
     } catch (error) {
+      console.error("Login error:", error)
       setError("Something went wrong. Please try again.")
       setIsLoading(false)
     }
   }
 
-//   const handleGoogleSignIn = () => {
-//     signIn("google", { callbackUrl: "/dashboard" })
-//   }
+  const handleGoogleSignIn = () => {
+    signIn("google", { callbackUrl: "/dashboard" })
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
@@ -81,7 +87,7 @@ console.log(result)
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              
+
             </div>
             <Input
               id="password"
@@ -108,7 +114,7 @@ console.log(result)
         <Button
           type="button"
           variant="outline"
-          
+          onClick={handleGoogleSignIn}
           className="w-full border-gray-300 hover:bg-gray-50"
         >
           <svg

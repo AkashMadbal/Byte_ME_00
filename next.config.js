@@ -27,8 +27,15 @@ const nextConfig = {
     return config;
   },
   // Ensure MongoDB client-side encryption is only used on the server
+  serverExternalPackages: ['mongodb'],
+
+  // Configure Turbopack
   experimental: {
-    serverComponentsExternalPackages: ['mongodb'],
+    turbo: {
+      resolveAlias: {
+        // Add any aliases needed for Turbopack
+      },
+    },
   },
 };
 
