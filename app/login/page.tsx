@@ -26,6 +26,18 @@ export default function LoginPage() {
     try {
       console.log("Attempting to sign in with:", { email });
 
+      // Add a fetch call to check if the API is accessible
+      try {
+        const apiCheck = await fetch('/api/auth/csrf');
+        console.log('API check status:', apiCheck.status);
+        if (!apiCheck.ok) {
+          const errorText = await apiCheck.text();
+          console.error('API check failed:', errorText);
+        }
+      } catch (apiError) {
+        console.error('API check error:', apiError);
+      }
+
       const result = await signIn("credentials", {
         redirect: false,
         email,
@@ -36,6 +48,7 @@ export default function LoginPage() {
       console.log("Sign in result:", result);
 
       if (result?.error) {
+        console.error("Authentication error:", result.error);
         setError(result.error);
       } else {
         router.push("/dashboard");
@@ -43,14 +56,27 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError("An unexpected error occurred. Please try again.");
+      // More detailed error message
+      const errorMessage = error instanceof Error ?
+        `Error: ${error.message}` :
+        "An unexpected error occurred. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
+    try {
+      console.log("Attempting to sign in with Google");
+      signIn("google", {
+        callbackUrl: "/dashboard",
+        redirect: true
+      });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("Failed to initiate Google sign-in. Please try again.");
+    }
   };
 
   return (
