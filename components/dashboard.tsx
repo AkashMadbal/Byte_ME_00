@@ -36,6 +36,8 @@ interface DashboardData {
   }[]
   weakTopics: string[]
   onlineDates: any[]
+  error?: string
+  isMongoDBError?: boolean
 }
 
 export default function Dashboard() {
@@ -48,6 +50,8 @@ export default function Dashboard() {
     performanceData: [],
     weakTopics: [],
     onlineDates: [],
+    error: undefined,
+    isMongoDBError: false
   })
 
   const [loading, setLoading] = useState(true)
@@ -100,11 +104,18 @@ export default function Dashboard() {
 
     } catch (error) {
       console.error("Error loading dashboard:", error)
+
+      // Check if this is a MongoDB connection error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isMongoDBError = errorMessage.includes('MongoDB') || errorMessage.includes('Database connection');
+
       setDashboardData({
-        user: { name: "User" },
+        user: { name: session?.user?.name || "User" },
         performanceData: [],
         weakTopics: [],
         onlineDates: [],
+        error: errorMessage,
+        isMongoDBError
       })
     } finally {
       setLoading(false)
@@ -150,6 +161,38 @@ export default function Dashboard() {
         </div>
       </div>
     )
+  }
+
+  // Show MongoDB error message if there's a database connection issue
+  if (dashboardData.isMongoDBError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-950 to-gray-900 flex items-center justify-center relative overflow-hidden">
+        <ParticlesWrapper />
+        <div className="max-w-md w-full bg-white/20 backdrop-blur-md p-8 rounded-xl shadow-xl z-10 text-white">
+          <div className="flex items-center justify-center mb-4 text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-center mb-4">Database Connection Error</h2>
+          <p className="mb-4 text-center">
+            Unable to connect to MongoDB. Please make sure MongoDB is running.
+          </p>
+          <div className="bg-black/30 p-4 rounded-md mb-6 text-sm overflow-auto max-h-32">
+            <code>{dashboardData.error}</code>
+          </div>
+          <div className="text-center">
+            <p className="mb-4">See <a href="/MONGODB_SETUP.md" className="text-blue-400 underline" target="_blank" rel="noopener noreferrer">MONGODB_SETUP.md</a> for instructions on setting up MongoDB.</p>
+            <Button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
